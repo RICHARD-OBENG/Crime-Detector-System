@@ -1,0 +1,216 @@
+openapi: 3.0.0
+info:
+  title: Crime Detector System API
+  description: AI-powered crime detection and investigation management system
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@crimedetector.local
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development server
+  - url: https://api.crimedetector.local/api/v1
+    description: Production server
+
+tags:
+  - name: Investigations
+    description: Crime investigation operations
+  - name: Entities
+    description: Entity matching and linking
+  - name: Cases
+    description: Case management operations
+
+paths:
+  /investigations/analyze:
+    post:
+      tags:
+        - Investigations
+      summary: Analyze investigation data
+      description: Submit investigation data for AI analysis to detect crime patterns
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvestigationRequest'
+      responses:
+        '200':
+          description: Analysis completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvestigationResponse'
+        '400':
+          description: Invalid request data
+        '500':
+          description: Server error during analysis
+
+  /entities/match:
+    post:
+      tags:
+        - Entities
+      summary: Match and link entities
+      description: Match suspects, witnesses, or locations across investigations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntityMatchRequest'
+      responses:
+        '200':
+          description: Entity matching completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityMatchResponse'
+        '400':
+          description: Invalid entity data
+        '500':
+          description: Server error during matching
+
+  /cases/{id}/summary:
+    get:
+      tags:
+        - Cases
+      summary: Get case summary
+      description: Retrieve a comprehensive summary of a specific case
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Case ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Case summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseSummary'
+        '404':
+          description: Case not found
+        '500':
+          description: Server error retrieving case
+
+components:
+  schemas:
+    InvestigationRequest:
+      type: object
+      required:
+        - title
+        - description
+        - incident_date
+      properties:
+        title:
+          type: string
+          example: "Bank Robbery Downtown"
+        description:
+          type: string
+          example: "Robbery at Main Street Bank Branch"
+        incident_date:
+          type: string
+          format: date-time
+        location:
+          type: string
+        evidence:
+          type: array
+          items:
+            type: string
+
+    InvestigationResponse:
+      type: object
+      properties:
+        investigation_id:
+          type: string
+          format: uuid
+        analysis_status:
+          type: string
+          enum: [pending, in_progress, completed]
+        crime_type:
+          type: string
+        risk_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        patterns_detected:
+          type: array
+          items:
+            type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    EntityMatchRequest:
+      type: object
+      required:
+        - entity_type
+        - data
+      properties:
+        entity_type:
+          type: string
+          enum: [suspect, witness, location, vehicle]
+        data:
+          type: object
+        confidence_threshold:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          default: 0.7
+
+    EntityMatchResponse:
+      type: object
+      properties:
+        matched_entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/MatchedEntity'
+        total_matches:
+          type: integer
+        processing_time_ms:
+          type: integer
+
+    MatchedEntity:
+      type: object
+      properties:
+        entity_id:
+          type: string
+          format: uuid
+        match_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        entity_type:
+          type: string
+        details:
+          type: object
+
+    CaseSummary:
+      type: object
+      properties:
+        case_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        status:
+          type: string
+          enum: [open, closed, archived]
+        created_date:
+          type: string
+          format: date-time
+        investigation_count:
+          type: integer
+        linked_entities:
+          type: integer
+        risk_assessment:
+          type: string
+          enum: [low, medium, high, critical]

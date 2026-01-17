@@ -1,0 +1,67 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: crime-detector-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://crimedb:crimedb_password@db:5432/crime_detector
+      - REDIS_URL=redis://redis:6379/0
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=development
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - crime-network
+
+  db:
+    image: postgres:16-alpine
+    container_name: crime-detector-db
+    environment:
+      - POSTGRES_USER=crimedb
+      - POSTGRES_PASSWORD=crimedb_password
+      - POSTGRES_DB=crime_detector
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docs/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - crime-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crimedb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: crime-detector-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - crime-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  crime-network:
+    driver: bridge
