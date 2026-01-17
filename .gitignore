@@ -1,0 +1,98 @@
+##################################
+# OS & Editor
+##################################
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+!.vscode/extensions.json
+
+##################################
+# Python
+##################################
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+.env
+.venv/
+venv/
+ENV/
+env/
+
+# Python build artifacts
+build/
+dist/
+*.whl
+
+# Test & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+##################################
+# ML / AI Artifacts
+##################################
+# Model files (large / generated)
+models/*.pt
+models/*.pth
+models/*.onnx
+models/*.joblib
+models/*.pkl
+
+# Training outputs
+checkpoints/
+logs/
+mlruns/
+wandb/
+
+# Data (raw or sensitive)
+data/raw/
+data/processed/
+data/interim/
+
+##################################
+# Node / JavaScript / TypeScript
+##################################
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+build/
+out/
+
+# TypeScript
+*.tsbuildinfo
+
+##################################
+# Frontend Frameworks
+##################################
+.next/
+.nuxt/
+.svelte-kit/
+.cache/
+
+##################################
+# Environment & Secrets
+##################################
+.env
+.env.*
+!.env.example
+
+##################################
+# Docker
+##################################
+docker-compose.override.yml
+
+##################################
+# Logs
+##################################
+*.log
