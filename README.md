@@ -875,49 +875,226 @@ Instead, email: **security@crime-detector.example.com** with:
 
 ```
 Crime-Detector-System/
-├── app/
-│   ├── api/
-│   │   ├── v1/
-│   │   │   ├── investigations.py
-│   │   │   ├── entities.py
-│   │   │   └── cases.py
-│   │   └── dependencies.py
-│   ├── models/
-│   │   ├── entity_matching.py
-│   │   ├── pattern_detection.py
-│   │   └── risk_assessment.py
-│   ├── db/
-│   │   ├── models.py
-│   │   ├── schemas.py
-│   │   └── database.py
-│   ├── services/
-│   │   ├── investigation.py
-│   │   ├── matching.py
-│   │   ├── patterns.py
-│   │   └── audit.py
-│   ├── utils/
-│   │   ├── validators.py
-│   │   ├── encryption.py
-│   │   └── logging.py
-│   └── main.py
-├── tests/
-│   ├── unit/
-│   ├── integration/
-│   └── fixtures/
-├── migrations/
-│   └── versions/
-├── docs/
-│   ├── api/
-│   ├── architecture/
-│   ├── compliance/
-│   └── business/
-├── docker-compose.yml
-├── Dockerfile
-├── pyproject.toml
-├── Makefile
-├── .env.example
-└── README.md
+│
+├── README.md                          # Project overview and documentation
+├── LICENSE                            # Proprietary license agreement
+├── .gitignore                         # Git ignore rules
+├── pyproject.toml                     # Python project configuration
+├── docker-compose.yml                 # Docker composition for local development
+├── Makefile                           # Development automation commands
+│
+├── docs/                              # 📚 Documentation (12 comprehensive documents)
+│   ├── business/                      # Business & ROI documentation
+│   │   ├── problem_statement.md       # 2.5K lines: Business case, ROI ($520K), pain points
+│   │   ├── value_proposition.md       # 1.5K lines: Value delivery, competitive positioning
+│   │   └── success_metrics.md         # 2K lines: KPIs, measurement methods, thresholds
+│   │
+│   ├── architecture/                  # Technical architecture documentation
+│   │   ├── system_overview.md         # 2K lines: 6-layer architecture, components, security
+│   │   ├── data_flow_diagram.md       # 1K lines: 7-step flow, privacy guarantees
+│   │   └── model_lifecycle.md         # 3.5K lines: MLOps, training, bias testing, deployment
+│   │
+│   ├── api/                           # API specification
+│   │   └── openapi.yaml               # 450+ lines: OpenAPI 3.0.0 spec, all endpoints
+│   │
+│   └── compliance/                    # Compliance & risk documentation
+│       ├── data_privacy.md            # 3.5K lines: GDPR/CCPA, encryption, audit logging
+│       └── model_risks.md             # 4K lines: Bias, fairness, false positives, misuse
+│
+├── data/                              # 📊 Data management
+│   ├── raw/                           # Raw data sources (unprocessed)
+│   ├── processed/                     # Cleaned and processed data
+│   ├── external/                      # External data sources (NCIC, AFIS, public records)
+│   ├── features/                      # Engineered features for models
+│   └── data_validation/               # Data quality checks and validation rules
+│
+├── ml/                                # 🤖 Machine Learning pipeline
+│   ├── experiments/                   # Experiment tracking and results
+│   │   └── logs/                      # MLflow experiment logs
+│   │
+│   ├── training/                      # Model training scripts
+│   │   ├── train.py                   # Training pipeline for all 3 models
+│   │   ├── evaluate.py                # Model evaluation and metrics
+│   │   └── cross_validation.py        # Cross-validation and hyperparameter tuning
+│   │
+│   ├── inference/                     # Prediction and inference
+│   │   └── predict.py                 # Batch and real-time prediction
+│   │
+│   ├── models/                        # Model artifacts and registry
+│   │   ├── model_registry/            # MLflow model registry
+│   │   └── artifacts/                 # Model weights and checkpoints
+│   │       ├── entity_matching/       # VGGFace2 + FaceNet + ArcFace ensemble
+│   │       ├── pattern_detection/     # Graph Neural Network
+│   │       └── risk_assessment/       # XGBoost gradient boosting
+│   │
+│   ├── feature_engineering/           # Feature transformation and engineering
+│   │   ├── __init__.py
+│   │   ├── facial_features.py
+│   │   ├── graph_features.py
+│   │   └── statistical_features.py
+│   │
+│   └── metrics/                       # Performance, fairness, and bias metrics
+│       ├── accuracy_metrics.py
+│       ├── fairness_metrics.py
+│       ├── bias_detection.py
+│       └── drift_detection.py
+│
+├── backend/                           # 🔧 Backend API service
+│   ├── app/                           # FastAPI application
+│   │   ├── main.py                    # Application entry point
+│   │   ├── config.py                  # Configuration management
+│   │   │
+│   │   ├── routes/                    # API endpoint handlers
+│   │   │   ├── investigations.py      # Investigation endpoints
+│   │   │   ├── entities.py            # Entity matching endpoints
+│   │   │   ├── cases.py               # Case management endpoints
+│   │   │   └── health.py              # Health check endpoints
+│   │   │
+│   │   ├── services/                  # Business logic services
+│   │   │   ├── investigation_service.py
+│   │   │   ├── matching_service.py    # Facial recognition logic
+│   │   │   ├── pattern_service.py     # Crime series detection
+│   │   │   ├── risk_service.py        # Risk assessment logic
+│   │   │   └── audit_service.py       # Audit and compliance logging
+│   │   │
+│   │   ├── domain/                    # Domain models and entities
+│   │   │   ├── investigation.py
+│   │   │   ├── suspect.py
+│   │   │   ├── incident.py
+│   │   │   └── case.py
+│   │   │
+│   │   ├── repositories/              # Database access layer
+│   │   │   ├── investigation_repo.py
+│   │   │   ├── suspect_repo.py
+│   │   │   └── audit_repo.py
+│   │   │
+│   │   └── security/                  # Authentication & authorization
+│   │       ├── auth.py                # OAuth 2.0 + MFA
+│   │       ├── rbac.py                # Role-based access control
+│   │       ├── encryption.py          # AES-256 encryption
+│   │       └── validators.py          # Input validation & sanitization
+│   │
+│   ├── tests/                         # Backend tests
+│   │   ├── unit/                      # Unit tests
+│   │   ├── integration/               # Integration tests
+│   │   └── fixtures/                  # Test data and mocks
+│   │
+│   └── requirements.txt               # Backend dependencies
+│
+├── frontend/                          # 💻 Frontend web application
+│   ├── web/                           # React/Vue.js application
+│   │   ├── src/
+│   │   │   ├── components/            # UI components
+│   │   │   ├── pages/                 # Page components
+│   │   │   ├── services/              # API client services
+│   │   │   ├── store/                 # State management (Redux/Vuex)
+│   │   │   ├── styles/                # CSS/SCSS styles
+│   │   │   └── App.tsx                # Main app component
+│   │   │
+│   │   ├── public/                    # Static assets
+│   │   ├── package.json               # Node.js dependencies
+│   │   └── tsconfig.json              # TypeScript configuration
+│
+├── infrastructure/                    # ☁️ Infrastructure as Code
+│   ├── docker/                        # Docker configurations
+│   │   ├── Dockerfile                 # Multi-stage build
+│   │   ├── docker-compose.yml         # Local development setup
+│   │   └── .dockerignore
+│   │
+│   ├── kubernetes/                    # Kubernetes manifests
+│   │   ├── deployment.yaml            # K8s deployment config
+│   │   ├── service.yaml               # K8s service config
+│   │   ├── ingress.yaml               # K8s ingress config
+│   │   └── helm/                      # Helm charts for deployment
+│   │
+│   ├── terraform/                     # Terraform Infrastructure as Code
+│   │   ├── main.tf                    # Main Terraform config
+│   │   ├── variables.tf               # Variable definitions
+│   │   ├── outputs.tf                 # Output definitions
+│   │   └── environments/              # Environment-specific configs
+│   │       ├── dev.tfvars
+│   │       ├── staging.tfvars
+│   │       └── prod.tfvars
+│   │
+│   └── cloud/                         # Cloud-specific configurations
+│       ├── aws/                       # AWS-specific setup
+│       │   ├── ecs.tf                 # ECS configuration
+│       │   ├── rds.tf                 # RDS database setup
+│       │   ├── alb.tf                 # Load balancer config
+│       │   └── s3.tf                  # S3 bucket setup
+│       │
+│       └── gcp/                       # GCP-specific setup (if applicable)
+│
+├── monitoring/                        # 📈 Monitoring & observability
+│   ├── logging/                       # Logging configuration
+│   │   ├── logging_config.py
+│   │   └── structured_logs.py
+│   │
+│   ├── metrics/                       # Metrics collection and export
+│   │   ├── prometheus_config.yml
+│   │   ├── custom_metrics.py
+│   │   └── performance_tracking.py
+│   │
+│   ├── alerts/                        # Alert rules and thresholds
+│   │   ├── alert_rules.yml
+│   │   └── notification_config.py
+│   │
+│   └── model_drift/                   # Model drift detection
+│       ├── drift_detection.py         # Data/concept drift monitoring
+│       ├── performance_monitoring.py  # Model accuracy tracking
+│       └── fairness_monitoring.py     # Fairness metrics tracking
+│
+├── scripts/                           # 🛠️ Utility scripts
+│   ├── setup_env.sh                   # Environment setup script
+│   ├── data_ingestion.sh              # Data import and validation
+│   ├── deploy.sh                      # Deployment automation
+│   ├── migrate_db.sh                  # Database migrations
+│   └── test_api.sh                    # API testing script
+│
+└── tests/                             # 🧪 End-to-end tests
+    ├── unit/                          # Unit tests for services
+    ├── integration/                   # Integration tests (API + DB)
+    └── system/                        # System/E2E tests
 ```
+
+### Key Directories Explained
+
+**📚 docs/** (12 documents, 17K+ lines)
+- Complete documentation for business, architecture, API, and compliance
+- Serves as project encyclopedia for developers, operators, and stakeholders
+
+**📊 data/**
+- Manages raw, processed, and feature data
+- Data validation ensures quality before ML pipeline
+
+**🤖 ml/**
+- Complete MLOps pipeline: training, evaluation, inference
+- Model artifacts, registry, and versioning
+- Fairness, bias, and drift monitoring
+
+**🔧 backend/**
+- FastAPI microservice with layered architecture
+- Services, repositories, domain models
+- Security: OAuth 2.0, MFA, RBAC, encryption
+
+**💻 frontend/**
+- React/Vue.js web application
+- Component-based architecture
+- Integration with backend API
+
+**☁️ infrastructure/**
+- Docker, Kubernetes, Terraform, cloud configs
+- Multi-environment setup (dev/staging/prod)
+- Infrastructure as Code (IaC)
+
+**📈 monitoring/**
+- Logging, metrics, alerts
+- Model drift and performance monitoring
+- Fairness metrics tracking
+
+**🛠️ scripts/**
+- Automation for common tasks
+- Deployment, data ingestion, migrations
 
 ---
 
