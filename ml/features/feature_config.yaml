@@ -1,0 +1,289 @@
+# Feature Configuration - Declarative Control
+# Derived from EDA/05_feature_decisions.ipynb
+# 
+# This file serves as the single source of truth for feature engineering.
+# The build_features.py code reads this configuration and applies transformations
+# declaratively, allowing features to change without modifying code.
+
+version: "1.0"
+approval:
+  notebook: EDA/05_feature_decisions.ipynb
+  status: approved
+  any_deviation_requires: re-approval
+
+# Data flow paths
+data_flow:
+  input:
+    path: ml/data/interim/cleaned_data.csv
+    description: Output from data cleaning pipeline (01_schema_and_quality.ipynb)
+  
+  output:
+    features: ml/data/processed/features.csv
+    target: ml/data/processed/target.csv
+    metadata: ml/data/processed/feature_metadata.pkl
+
+# Feature groups: explicit lists for stable, configuration-driven engineering
+feature_groups:
+  
+  # Identifiers to drop (not features)
+  identifiers:
+    - crime_id
+  
+  # Target variable (excluded from features, stored separately)
+  target:
+    - crime_type
+  
+  # Numeric features requiring cyclical encoding
+  numeric_cyclical:
+    - hour:
+        bins: 24
+        encoding: sin_cos
+        description: Hour of day (0-23)
+  
+  # Numeric features requiring spatial binning
+  numeric_spatial:
+    - latitude:
+        bins: 10
+        encoding: binning
+        description: Latitude coordinate
+    - longitude:
+        bins: 10
+        encoding: binning
+        description: Longitude coordinate
+  
+  # Numeric features requiring age binning
+  numeric_age:
+    - victim_age:
+        bins: [0, 18, 35, 50, 65, 150]
+        labels: ["0-18", "18-35", "35-50", "50-65", "65+"]
+        encoding: binning
+        description: Victim age
+    - suspect_age:
+        bins: [0, 18, 35, 50, 65, 150]
+        labels: ["0-18", "18-35", "35-50", "50-65", "65+"]
+        encoding: binning
+        description: Suspect age
+  
+  # Low-cardinality categorical (one-hot encoding)
+  categorical_low_cardinality:
+    - weapon_used:
+        encoding: one_hot
+        rare_threshold: 0.01  # Group values <1% of data as 'other'
+        preserve_unknown: true
+        description: Weapon type
+    - day_of_week:
+        encoding: one_hot
+        preserve_unknown: false
+        description: Day of week
+  
+  # High-cardinality categorical (frequency encoding)
+  categorical_high_cardinality:
+    - neighborhood:
+        encoding: frequency
+        description: Neighborhood zone
+  
+  # Other numeric features (no transformation)
+  numeric_pass_through:
+    - arrest_made:
+        encoding: none
+        description: Whether arrest was made (potentially for downstream task)
+
+# Encoding strategies (maps encoding type to parameters)
+encoding_strategies:
+  
+  sin_cos:
+    type: cyclical
+    components: [sin, cos]
+    description: Cyclical sin/cos encoding for periodic features
+    rationale: Captures periodic behavior without artificial ordering
+  
+  one_hot:
+    type: categorical
+    sparse: false
+    drop_first: false
+    description: One-hot encoding for low-cardinality categoricals
+    rationale: Creates independent binary features for each category
+  
+  frequency:
+    type: categorical
+    method: proportion
+    description: Frequency-based encoding for high-cardinality categoricals
+    rationale: Maps each category to proportion in dataset, reduces dimensionality
+  
+  binning:
+    type: numeric
+    method: pd.cut
+    description: Bin numeric features into ordinal categories
+    rationale: Reduces noise, handles outliers, reduces proxy bias
+  
+  none:
+    type: pass_through
+    description: No encoding, pass numeric feature as-is
+    rationale: Feature already suitable for modeling
+
+# Scaling configuration (post-encoding)
+scaling:
+  enabled: false  # Set to true if StandardScaler needed post-encoding
+  method: standard
+  features:  # Leave empty if scaling disabled
+    - hour_sin
+    - hour_cos
+  description: Normalize numeric features to zero mean, unit variance
+
+# Output feature schema contract
+feature_schema_contract:
+  # Numeric features (engineered)
+  - name: hour_sin
+    type: float
+    source: hour
+    transformation: sin_cos encoding
+    
+  - name: hour_cos
+    type: float
+    source: hour
+    transformation: sin_cos encoding
+    
+  - name: lat_bin
+    type: int
+    source: latitude
+    transformation: binning (10 bins)
+    
+  - name: lon_bin
+    type: int
+    source: longitude
+    transformation: binning (10 bins)
+    
+  - name: victim_age_bin
+    type: category
+    source: victim_age
+    transformation: binning ([0-18, 18-35, 35-50, 50-65, 65+])
+    
+  - name: suspect_age_bin
+    type: category
+    source: suspect_age
+    transformation: binning ([0-18, 18-35, 35-50, 50-65, 65+])
+
+  # Categorical features (one-hot encoded)
+  - name: weapon_blunt object
+    type: bool
+    source: weapon_used
+    transformation: one-hot (rare grouped)
+    
+  - name: weapon_gun
+    type: bool
+    source: weapon_used
+    transformation: one-hot (rare grouped)
+    
+  - name: weapon_knife
+    type: bool
+    source: weapon_used
+    transformation: one-hot (rare grouped)
+    
+  - name: weapon_unknown
+    type: bool
+    source: weapon_used
+    transformation: one-hot (rare grouped, preserved)
+    
+  - name: day_Mon
+    type: bool
+    source: day_of_week
+    transformation: one-hot
+    
+  - name: day_Tue
+    type: bool
+    source: day_of_week
+    transformation: one-hot
+    
+  - name: day_Wed
+    type: bool
+    source: day_of_week
+    transformation: one-hot
+    
+  - name: day_Thu
+    type: bool
+    source: day_of_week
+    transformation: one-hot
+    
+  - name: day_Fri
+    type: bool
+    source: day_of_week
+    transformation: one-hot
+    
+  - name: day_Sat
+    type: bool
+    source: day_of_week
+    transformation: one-hot
+    
+  - name: day_Sun
+    type: bool
+    source: day_of_week
+    transformation: one-hot
+    
+  # Frequency-encoded categorical
+  - name: neighborhood_enc
+    type: float
+    source: neighborhood
+    transformation: frequency encoding
+
+# Target variable (excluded from features)
+target_schema:
+  - name: crime_type
+    type: category
+    description: Crime classification (Homicide, Burglary, Fraud, Assault, Robbery, Theft, Vandalism)
+    note: Excluded from features, stored separately for training
+
+# Quality assurance and validation rules
+quality_checks:
+  leakage_prevention:
+    - "No feature derived from target variable"
+    - "No post-outcome attributes included"
+    - "Temporal features validated"
+    - "All transformations are target-agnostic"
+  
+  stability:
+    - "Rare weapon types grouped to avoid sparsity"
+    - "Spatial binning prevents overfitting to location"
+    - "Age binning reduces individual-level impact"
+  
+  bias_mitigation:
+    - "Age features binned to reduce individual-level impact"
+    - "Geographic features binned to reduce spatial proxy bias"
+    - "Frequency encoding used for high-cardinality features to maintain representation"
+    - "Sensitive attributes retained with caution and monitoring required"
+  
+  data_integrity:
+    - "Input: ml/data/interim/cleaned_data.csv (10,000+ records)"
+    - "Output: features.csv should have ~10,000 rows"
+    - "Output: target.csv should have ~10,000 rows"
+    - "Feature count: 18 (after encoding)"
+
+# Instrumentation and monitoring
+monitoring:
+  features_expected:
+    total_count: 18
+    cyclical_count: 2
+    binned_count: 4
+    one_hot_count: 11
+    frequency_encoded_count: 1
+  
+  distributions_to_track:
+    - hour_sin: "Should range [-1, 1]"
+    - hour_cos: "Should range [-1, 1]"
+    - lat_bin: "Should be integers 0-9"
+    - lon_bin: "Should be integers 0-9"
+    - weapon_*: "Should be bool [0, 1]"
+    - day_*: "Should be bool [0, 1]"
+    - neighborhood_enc: "Should range [0, 1] (proportions)"
+
+# Deviation and change management
+change_control:
+  rules:
+    - "Any change to feature list requires notebook re-approval"
+    - "Encoding strategy changes require bias/leakage review"
+    - "New features require whitelist addition here first"
+    - "Deprecated features require archival and downstream impact analysis"
+  
+  audit_trail:
+    - "version: 1.0 (current)"
+    - "created: 2026-01-26"
+    - "last_approval: EDA/05_feature_decisions.ipynb"
